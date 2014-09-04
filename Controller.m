@@ -60,7 +60,7 @@ BOOL pressed;
 - (void) start
 {
 	pressed = NO;
-	needToClick = NO;
+	needToClick = YES;
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
     [NSApplication sharedApplication];
 	
@@ -105,7 +105,10 @@ int callback(int device, Finger *data, int nFingers, double timestamp, int frame
 		{
 			if(!pressed)
 			{
-				NSLog(@"Pressed");
+				//NSLog(@"Pressed");
+                NSDate *now = [[NSDate alloc] init];
+                touchStartTime = [now retain];
+                [now release];
 				#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				  CGEventCreateKeyboardEvent(NULL, (CGKeyCode)55, true);
 				#else
@@ -119,12 +122,26 @@ int callback(int device, Finger *data, int nFingers, double timestamp, int frame
 		if(nFingers == 0) {
 			if(pressed)
 			{
-				NSLog(@"Released");
-				#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
-					CGEventCreateKeyboardEvent(NULL, (CGKeyCode)55, false);
-				#else
-					CGPostKeyboardEvent( (CGCharCode)0, (CGKeyCode)55, false );
-				#endif					
+				//NSLog(@"Released");
+                NSTimeInterval elapsedTime = -[touchStartTime timeIntervalSinceNow];
+                if(elapsedTime < 0.2f){
+                    CGEventRef ourEvent = CGEventCreate(NULL);
+					CGPoint ourLoc = CGEventGetLocation(ourEvent);
+                    // Real middle click
+                    #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+                        CGEventPost (kCGHIDEventTap, CGEventCreateMouseEvent (NULL,kCGEventOtherMouseDown,ourLoc,kCGMouseButtonCenter));
+                        CGEventPost (kCGHIDEventTap, CGEventCreateMouseEvent (NULL,kCGEventOtherMouseUp,ourLoc,kCGMouseButtonCenter));
+                    #else
+                        CGPostMouseEvent( ourLoc, 1, 3, 0, 0, 1);
+                        CGPostMouseEvent( ourLoc, 1, 3, 0, 0, 0);
+                    #endif
+                }else{
+                    #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+                        CGEventCreateKeyboardEvent(NULL, (CGKeyCode)55, false);
+                    #else
+                        CGPostKeyboardEvent( (CGCharCode)0, (CGKeyCode)55, false );
+                    #endif
+                }
 				
 				pressed = NO;
 			}

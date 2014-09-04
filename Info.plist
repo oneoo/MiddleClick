@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>mouse.icns</string>
+	<string>mouse</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.rouge41.middleClick</string>
 	<key>CFBundleInfoDictionaryVersion</key>
